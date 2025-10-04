@@ -1,16 +1,35 @@
+ import dotenv from "dotenv";
+ const result = dotenv.config({path:"./.env"});
 
-import pg, { Pool } from "pg";
+ if(result.error) throw result.error;
 
-const pool:Pool = new pg.Pool({
-    connectionString: process.env.CONNECTION_STRING
+
+import {Client} from "pg";
+
+
+const client = new Client({
+
+    host: process.env.DB_HOST,
+    port: parseInt(process.env.DB_PORT || "5432"),
+    user: process.env.DB_USER,
+    database: process.env.DB_NAME,
+    password: process.env.DB_PASSWORD,
+    ssl:{
+        rejectUnauthorized:false
+    }
+
+
 });
 
 
-pool.on('error',(err,client)=>{
+try{
+    
+    await client.connect();
+    console.log("✅ Connection to PostgreSQL db was successful");
 
-    console.error("Unexpected error while connecting to DB: ", err);
-    process.exit(1);
-});
+}catch(err){
+    console.error("❌ Unexpected error while connecting to PostgreSQL db ",err);
+}
 
 
-export default pool;
+export default client;
