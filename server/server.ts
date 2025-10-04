@@ -9,8 +9,6 @@ const PORT = process.env.PORT || 4000;
 import bookRouter from "./routes/book-routes.js";
 import userRouter from "./routes/user-routes.js";
 
-import pool from "./db/db.js";
-
 // Connecting to the PostgreSQL DB Pool
 
 app.use(express.json());

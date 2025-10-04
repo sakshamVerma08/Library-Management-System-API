@@ -11,9 +11,7 @@ import { adminAuth } from "../middlewares/adminAuth.js";
 
 // Book Router.
 
-// calling authMiddleware on every route in this file.
 bookRouter.use(authMiddleware);
-
 // /api/books
 
 bookRouter.get("/", getAllBooks);
