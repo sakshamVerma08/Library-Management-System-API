@@ -1,8 +1,16 @@
-// In memory Database that uses types fron lib/constant.ts
 
-import { Role, type User, type UserData } from "../lib/constants.js";
+import pg, { Pool } from "pg";
+
+const pool:Pool = new pg.Pool({
+    connectionString: process.env.CONNECTION_STRING
+});
 
 
+pool.on('error',(err,client)=>{
+
+    console.error("Unexpected error while connecting to DB: ", err);
+    process.exit(1);
+});
 
 
-
+export default pool;

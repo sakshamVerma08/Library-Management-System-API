@@ -8,8 +8,12 @@
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
     "module": "nodenext",
-    "target": "esnext",
-    "types": [],
+    "moduleResolution":"nodenext",
+    "esModuleInterop": true,
+    "target": "ES2020",
+    "types": ["node"],
+    "outDir":"./dist",
+    "rootDir":"./",
     // For nodejs:
     // "lib": ["esnext"],
     // "types": ["node"],
@@ -24,6 +28,7 @@
     // Stricter Typechecking Options
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
+    
 
     // Style Options
     // "noImplicitReturns": true,
@@ -41,5 +46,10 @@
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
+  },
+
+  "ts-node":{
+    "esm":true,
+    "experimentalSpecifierResolution":"node"
   }
 }

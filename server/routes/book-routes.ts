@@ -3,6 +3,7 @@ const bookRouter = express.Router();
 import { authMiddleware } from "../middlewares/authMiddleware.js";
 import {
   addNewBook,
+  deleteBook,
   getAllBooks,
   updateStatus,
 } from "../controllers/bookController.js";
