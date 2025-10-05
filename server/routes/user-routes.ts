@@ -1,13 +1,14 @@
 import express from "express";
 import { authMiddleware } from "../middlewares/authMiddleware.js";
-import { createUser, getUser } from "../controllers/userController.js";
+import { createUser, getUser, loginUser } from "../controllers/userController.js";
 const userRouter = express.Router();
 
-userRouter.use("/:id", authMiddleware);
 
 // /api/users routes
 
 userRouter.post("/", createUser);
+
+userRouter.post("/", authMiddleware, loginUser)
 
 userRouter.get("/:id", getUser);
 
