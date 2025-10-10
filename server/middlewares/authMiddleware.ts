@@ -1,13 +1,5 @@
 import { type Request, type Response , type NextFunction } from "express";
-import jwt from "jsonwebtoken";
-
-declare global {
-  namespace Express{
-    interface Request{
-      user?: string | jwt.JwtPayload | undefined;
-    }
-  }
-}
+import jwt, { type JwtPayload } from "jsonwebtoken";
 
 
 export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
@@ -27,14 +19,9 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
   const token= auth.split(' ')[1];
 
 
-  const verifiedToken = jwt.verify(token!,"a-string-secret-at-least-256-bits-long");
-
-  // WIP: Check that the token is not in 'Blacklisted token' table in PostgreSQL.
-
-  const user = verifiedToken.sub;
-
-  console.log(user);
-  req.user = user;
-
+  const verifiedToken: JwtPayload= jwt.verify(token!,process.env.JWT_SECRET!) as JwtPayload;
+  console.log("id:", verifiedToken.sub);
+  
+  req.userId = verifiedToken.sub;
   next();
 };

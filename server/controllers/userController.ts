@@ -3,7 +3,7 @@ import * as z from "zod";
 import client from "../db/db.js";
 import type { QueryResult } from "pg";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+import jwt, { type JwtPayload } from "jsonwebtoken";
 
 const registerSchema = z.object({
     name: z.string().min(3),
@@ -44,15 +44,13 @@ export const createUser = async (req: Request, res: Response) => {
     }
 
     const email = validationResult.data.email;
-    const password = validationResult.data.password;
+    const password = validationResult.data.password;    
     const name = validationResult.data.name;
     const role = validationResult.data.role;
 
-    console.log("Registration mail = ", email);
-
     // Hashing + Salting the password using bcrypt Algorithm.
 
-    const saltRounds = 10;
+    const saltRounds = 12;
     
     const hashedPassword = await bcrypt.hash(password,saltRounds);
 
@@ -63,14 +61,15 @@ export const createUser = async (req: Request, res: Response) => {
     const values = [name,email,hashedPassword,role];
     const query = `INSERT INTO "User"(name,email,password,role) VALUES($1,$2,$3,$4) RETURNING *;`;
 
+    
     const result: QueryResult = await client.query(query,values);
 
-    const createdUser = result.rows[0];
+    const createdUser: User = result.rows[0];
 
     
     const token = jwt.sign({
-        sub: createdUser.id, email: createdUser.email
-    }, process.env.JWT_SECRET!, {expiresIn: '24h'});
+        sub: createdUser.id, email: createdUser.email, role: createdUser.role 
+    }, process.env.JWT_SECRET!, {expiresIn: '24h', algorithm: "HS256"});
 
     const expiry = 24*60*60*1000; //24 hours in ms
 
@@ -89,30 +88,64 @@ export const createUser = async (req: Request, res: Response) => {
 
 export const loginUser = async (req: Request, res: Response)=>{
 
-    // const validationResult = loginSchema.safeParse(req.body);
+try{
+    const {email,password} = req.body;
 
-    // if(!validationResult.success) return res.status(400).json({message:"Error validating all fields"});
+    const query = `SELECT email,password FROM "User" WHERE email = $1`;
 
-    const token = req.cookies.token;
+    const user = await client.query(query,[email]);
 
-    if(!token) return res.status(400).json({message:"Unauthorized"});
+    if(user.rowCount==0) return res.status(400).json({message:"No User with provided email found"});
 
+    const saltRounds = 12;
+
+    let isSamePassword;
 
     try{
 
-        const decodedToken =  jwt.verify(token,process.env.JWT_SECRET!);
+    isSamePassword = await bcrypt.compare(password,user.rows[0].password);
 
-        return res.status(200).json({message:"Login successful", data: decodedToken});
+    }catch(err){
+        console.error(err);
+        process.exit(1);
+
+    }
+
+    if(!isSamePassword) return res.status(400).json({message:"Wrong credentials entered"});
+
+    return res.status(200).json({message:"Login successful"});
+
+}catch(err){
+    console.error(err);
+    return res.status(500).json({message:"Internal Server Error"});
+}
+
+}
+
+export const getUser = async (req: Request,res: Response)=>{
+
+    try{
+
+        const {id}  = req.params;
+        const actualId = req.userId;
+
+        // if the user who is signed in tries to access details of some other user, block that request.
+
+        // if(id !== actualId) return res.status(400).json({message:"Can't access other user personal details"});
+
+        const query = `SELECT name,email,role FROM "User"
+    WHERE id = $1`;
+
+        const userData = await client.query(query,[id]);
+
+        if(userData.rowCount == 0) return res.status(400).json({message:"User not found"});
+
+        return res.status(200).json({data: userData.rows[0], message:"User Details fetched successfully"});
 
     }catch(err){
         console.error(err);
         return res.status(500).json({message:"Internal Server Error"});
-    }
-
-
-}
-
-export const getUser = (req: Request,res: Response)=>{
-
+    }      
+    
     
 }

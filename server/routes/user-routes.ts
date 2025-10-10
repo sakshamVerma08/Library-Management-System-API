@@ -8,10 +8,8 @@ const userRouter = express.Router(); // Router level middleware.
 userRouter.post("/", createUser);
 userRouter.post("/login", loginUser);
 
-userRouter.use(authMiddleware);
 
-
-
-userRouter.get("/:id", getUser);
+// Get the User Profile
+userRouter.get("/:id", authMiddleware,getUser);
 
 export default userRouter;
